@@ -38,3 +38,9 @@ extern "C" int acl_sample(const void* bytes,uint32_t length,float seconds,uint32
  const acl::sample_rounding_policy policies[]={acl::sample_rounding_policy::none,acl::sample_rounding_policy::nearest,acl::sample_rounding_policy::floor,acl::sample_rounding_policy::ceil};
  context.seek(seconds,policies[rounding]);Output writer(defaults,output);context.decompress_tracks(writer);return count;
 }
+extern "C" int acl_metadata(const void* bytes,uint32_t length,float* output,uint32_t output_count){
+ const int count=acl_validate(bytes,length);if(count<0)return count;
+ if(!output||output_count<5)return -5;
+ const auto& tracks=*static_cast<const acl::compressed_tracks*>(bytes);
+ output[0]=float(tracks.get_num_tracks());output[1]=float(tracks.get_num_samples_per_track());output[2]=tracks.get_sample_rate();output[3]=tracks.get_finite_duration();output[4]=float(tracks.get_default_scale());return count;
+}

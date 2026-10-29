@@ -8,6 +8,9 @@ assert.equal(m._acl_validate(pointer,bytes.length),3);
 assert.equal(m._acl_validate(pointer,bytes.length-1),-2);
 assert.equal(m._acl_validate(pointer+1,bytes.length),-1);
 const defaults=m._malloc(120),output=m._malloc(120);
+assert.equal(m._acl_metadata(pointer,bytes.length,output,5),3);
+assert.deepEqual(Array.from(m.HEAPF32.subarray(output/4,output/4+4)),[3,31,30,1]);
+assert.equal(m._acl_metadata(pointer,bytes.length,output,4),-5);
 const ref=new Float32Array(30);for(let i=0;i<3;i++){ref[i*10+3]=1;ref[i*10+7]=ref[i*10+8]=ref[i*10+9]=1;}
 m.HEAPF32.set(ref,defaults/4);
 let index=0,maxError=0;
