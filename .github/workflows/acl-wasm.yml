@@ -1,0 +1,36 @@
+name: Build and test ACL WebAssembly
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: acl-wasm
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Install compiler on the runner
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq emscripten
+      - name: Fetch pinned open-source headers
+        run: bash fetch-sources.sh
+      - name: Compile and compare native versus WebAssembly
+        run: bash build.sh
+      - name: Record tool versions
+        run: |
+          em++ --version | head -1 > dist/TOOLCHAIN.txt
+          node --version >> dist/TOOLCHAIN.txt
+          git rev-parse HEAD >> dist/TOOLCHAIN.txt
+          cp vendor/acl/LICENSE dist/ACL-LICENSE.txt
+          cp vendor/rtm/LICENSE dist/RTM-LICENSE.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: acl-wasm
+          path: dist/
+          retention-days: 1
