@@ -21,6 +21,10 @@ for(let rounding=0;rounding<4;rounding++)for(let sample=0;sample<257;sample++){
   assert.ok(Number.isFinite(a)&&error<=2e-5*Math.max(1,Math.abs(b)),`case ${rounding}/${sample}/${i}: ${a} != ${b}`);maxError=Math.max(maxError,error);
  }
 }
+// This synthetic clip strips trivial keys. Floor at frame1.25 must reconstruct
+// frame1 between retained keys, rather than applying floor to retained keys again.
+assert.equal(m._acl_sample(pointer,bytes.length,Math.fround(1.25/30),2,defaults,30,output,30),3);
+assert.ok(m.HEAPF32[output/4+26]<-.02&&m.HEAPF32[output/4+26]>-.05);
 assert.equal(m._acl_sample(pointer,bytes.length,NaN,0,defaults,30,output,30),-5);
 assert.equal(m._acl_sample(pointer,bytes.length,0,4,defaults,30,output,30),-5);
 assert.equal(m._acl_sample(pointer,bytes.length,0,0,defaults,29,output,30),-5);

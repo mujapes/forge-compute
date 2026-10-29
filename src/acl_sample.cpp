@@ -5,6 +5,11 @@
 #include <cstdint>
 #include <cstring>
 
+// This API selects one rounding policy for the whole clip. Per-track rounding
+// would apply it again after reconstruction of stripped sample positions.
+struct SamplerSettings : acl::decompression_settings {
+ static constexpr bool is_per_track_rounding_supported(){return false;}
+};
 struct Output final : acl::track_writer {
  const float* defaults;
  float* values;
@@ -33,7 +38,7 @@ extern "C" int acl_sample(const void* bytes,uint32_t length,float seconds,uint32
  const int count=acl_validate(bytes,length);if(count<0)return count;
  if(!std::isfinite(seconds)||rounding>3||!defaults||!output||default_count<uint32_t(count)*10||output_count<uint32_t(count)*10)return -5;
  for(uint32_t i=0;i<uint32_t(count)*10;i++)if(!std::isfinite(defaults[i]))return -6;
- acl::decompression_context<acl::decompression_settings> context;
+ acl::decompression_context<SamplerSettings> context;
  if(!context.initialize(*static_cast<const acl::compressed_tracks*>(bytes)))return -7;
  const acl::sample_rounding_policy policies[]={acl::sample_rounding_policy::none,acl::sample_rounding_policy::nearest,acl::sample_rounding_policy::floor,acl::sample_rounding_policy::ceil};
  context.seek(seconds,policies[rounding]);Output writer(defaults,output);context.decompress_tracks(writer);return count;
